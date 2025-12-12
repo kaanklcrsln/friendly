@@ -1,13 +1,15 @@
 import styles from './Layout.module.css';
-import Header from './Header';
+import Navbar from './Navbar';
+import BottomBar from './BottomBar';
 
 export default function Layout({ children }) {
   return (
     <div className={styles.layout}>
-      <Header />
+      <Navbar />
       <main className={styles.main}>
         {children}
       </main>
+      <BottomBar />
     </div>
   );
 }

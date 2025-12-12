@@ -18,5 +18,10 @@ export function useAuth() {
     await firebaseSignOut(auth);
   }, []);
 
-  return { user, loading, signInWithEmail, signUpWithEmail, signOut };
+  const logout = useCallback(async () => {
+    await firebaseSignOut(auth);
+  }, []);
+
+  return { user, loading, signInWithEmail, signUpWithEmail, signOut, logout };
 }
+

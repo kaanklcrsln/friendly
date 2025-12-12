@@ -1,0 +1,36 @@
+{
+  "rules": {
+    "users": {
+      "$uid": {
+        ".read": "$uid === auth.uid",
+        ".write": "$uid === auth.uid",
+        ".validate": "newData.hasChildren(['uid', 'email', 'displayName', 'createdAt'])"
+      }
+    },
+    "rooms": {
+      ".read": "auth != null",
+      "$roomId": {
+        "messages": {
+          ".write": "auth != null",
+          ".read": "auth != null",
+          "$messageId": {
+            ".validate": "newData.hasChildren(['userId', 'text', 'timestamp'])"
+          }
+        },
+        "members": {
+          ".read": "auth != null",
+          ".write": "auth != null"
+        }
+      }
+    },
+    "events": {
+      ".read": "auth != null",
+      "$eventId": {
+        ".write": "root.child('users').child(auth.uid).exists()",
+        ".validate": "newData.hasChildren(['title', 'location', 'timestamp'])"
+      }
+    },
+    ".read": false,
+    ".write": false
+  }
+}

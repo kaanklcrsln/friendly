@@ -1,16 +1,9 @@
 import styles from './Header.module.css';
 import { useAuth } from '../../hooks/useAuth.jsx';
+import ProfileMenu from '../header/ProfileMenu.jsx';
 
 export default function Header() {
-  const { user, signOut } = useAuth();
-
-  const handleLogout = async () => {
-    try {
-      await signOut();
-    } catch (err) {
-      console.error('Logout failed:', err.message);
-    }
-  };
+  const { user } = useAuth();
 
   return (
     <header className={styles.header}>
@@ -28,12 +21,7 @@ export default function Header() {
 
         <div className={styles.userMenu}>
           {user ? (
-            <>
-              <span className={styles.userEmail}>{user.email}</span>
-              <button className={styles.logoutBtn} onClick={handleLogout}>
-                Çıkış
-              </button>
-            </>
+            <ProfileMenu />
           ) : (
             <a href="/auth" className={styles.loginBtn}>
               Giriş Yap
