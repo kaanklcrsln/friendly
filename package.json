@@ -12,5 +12,8 @@
   "workspaces": [
     "client",
     "server"
-  ]
+  ],
+  "dependencies": {
+    "firebase": "^12.6.0"
+  }
 }

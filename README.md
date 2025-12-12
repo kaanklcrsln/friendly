@@ -46,18 +46,20 @@ pnpm install          # installs workspaces for client & server
 
 ### Environment Variables
 
-Create `.env` files in both `client/` and `server/`:
-
-**client/.env**
-**client/.env**
+**client/.env** (Opsiyonel - Firebase credentials zaten entegre edildi)
 
 ```
-VITE_FIREBASE_API_KEY=<your-api-key>
-VITE_FIREBASE_AUTH_DOMAIN=<your-project>.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=<your-project-id>
-VITE_FIREBASE_STORAGE_BUCKET=<your-project>.appspot.com
-VITE_FIREBASE_MESSAGING_SENDER_ID=<sender-id>
-VITE_FIREBASE_APP_ID=<app-id>
+# Aşağıdaki değerler zaten src/api/firebase.js'de tanımlanmıştır
+VITE_FIREBASE_API_KEY=AIzaSyD26AL2n7KamwZGLpzAXLSbJjC_Mnblpl8
+VITE_FIREBASE_AUTH_DOMAIN=friendly-2fb02.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=friendly-2fb02
+```
+
+**server/.env**
+
+```
+PORT=4000
+FIREBASE_SERVICE_ACCOUNT_KEY=<service-account-json>
 ```
 
 **server/.env**
