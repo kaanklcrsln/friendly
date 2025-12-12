@@ -2,6 +2,10 @@
 
 A GIS-based social platform with event discovery, real-time chat, and map integration—powered by **Firebase Realtime Database**.
 
+
+<img width="2816" height="1536" alt="friendly-banner" src="https://github.com/user-attachments/assets/e9ac594d-4255-47e2-b301-bafc721c2f84" />
+
+
 ## Project Structure
 
 ```
