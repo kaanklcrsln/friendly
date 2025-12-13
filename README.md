@@ -50,7 +50,7 @@ pnpm install          # installs workspaces for client & server
 
 ```
 # Aşağıdaki değerler zaten src/api/firebase.js'de tanımlanmıştır
-VITE_FIREBASE_API_KEY=AIzaSyD26AL2n7KamwZGLpzAXLSbJjC_Mnblpl8
+VITE_FIREBASE_API_KEY=your_firebase_api_key_here
 VITE_FIREBASE_AUTH_DOMAIN=friendly-2fb02.firebaseapp.com
 VITE_FIREBASE_PROJECT_ID=friendly-2fb02
 ```

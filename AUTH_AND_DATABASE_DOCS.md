@@ -223,7 +223,7 @@ Dosya: `server/firebase-database-rules.json`
 
 `.env` dosyasında (Frontend):
 ```
-VITE_FIREBASE_API_KEY=AIzaSyD26AL2n7KamwZGLpzAXLSbJjC_Mnblpl8
+VITE_FIREBASE_API_KEY=your_firebase_api_key_here
 VITE_FIREBASE_AUTH_DOMAIN=friendly-2fb02.firebaseapp.com
 VITE_FIREBASE_PROJECT_ID=friendly-2fb02
 VITE_FIREBASE_STORAGE_BUCKET=friendly-2fb02.appspot.com
