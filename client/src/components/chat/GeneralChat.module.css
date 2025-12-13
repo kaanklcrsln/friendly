@@ -1,0 +1,231 @@
+.chatContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: white;
+}
+
+:global(.dark-mode) .chatContainer {
+  background: #1b1f3b;
+  color: #ffffff;
+}
+
+.chatHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--color-border);
+  background: #D9EBFF;
+}
+
+:global(.dark-mode) .chatHeader {
+  background: #2d3748;
+  border-bottom-color: #4a5568;
+}
+
+.chatHeader h2 {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  color: #4a7ab5;
+}
+
+:global(.dark-mode) .chatHeader h2 {
+  color: #c3dcf7;
+}
+
+.userCount {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  background: rgba(74, 122, 181, 0.1);
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+}
+
+:global(.dark-mode) .userCount {
+  color: #a0aec0;
+  background: rgba(74, 122, 181, 0.2);
+}
+
+.messagesList {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+:global(.dark-mode) .messagesList {
+  background: #1b1f3b;
+}
+
+.emptyState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+.message {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: #f7fafc;
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--color-border);
+  animation: slideIn 0.2s ease-out;
+}
+
+:global(.dark-mode) .message {
+  background: #2d3748;
+  border-left-color: #4a5568;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message.own {
+  background: #d9ebff;
+  border-left-color: var(--color-primary);
+  margin-left: auto;
+  max-width: 80%;
+}
+
+:global(.dark-mode) .message.own {
+  background: #2c5aa0;
+  border-left-color: #5b8cc4;
+}
+
+.messageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.userName {
+  font-weight: 600;
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+}
+
+:global(.dark-mode) .userName {
+  color: #c3dcf7;
+}
+
+.timestamp {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.messageContent {
+  margin: 0;
+}
+
+.messageContent p {
+  margin: 0;
+  color: var(--color-text);
+  word-break: break-word;
+  line-height: 1.4;
+}
+
+:global(.dark-mode) .messageContent p {
+  color: #e2e8f0;
+}
+
+.inputForm {
+  display: flex;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  border-top: 1px solid var(--color-border);
+  background: white;
+}
+
+:global(.dark-mode) .inputForm {
+  background: #1b1f3b;
+  border-top-color: #4a5568;
+}
+
+.input {
+  flex: 1;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-family: inherit;
+  transition: all var(--transition-fast);
+}
+
+:global(.dark-mode) .input {
+  background: #2d3748;
+  border-color: #4a5568;
+  color: #ffffff;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(74, 122, 181, 0.1);
+}
+
+.input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.sendBtn {
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-size: var(--font-size-sm);
+}
+
+.sendBtn:hover:not(:disabled) {
+  background: #2c5aa0;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.sendBtn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.sendBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Scrollbar styling */
+.messagesList::-webkit-scrollbar {
+  width: 6px;
+}
+
+.messagesList::-webkit-scrollbar-track {
+  background: var(--color-bg-secondary);
+}
+
+.messagesList::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+.messagesList::-webkit-scrollbar-thumb:hover {
+  background: var(--color-neutral);
+}
