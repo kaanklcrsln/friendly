@@ -82,13 +82,19 @@ export default function GeneralChat() {
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user) {
+      console.error('GeneralChat: Kullanıcı giriş yapmamış!');
+      return;
+    }
+
+    console.log('GeneralChat: Mesaj gönderiliyor...', { text: messageText, userId: user.uid });
 
     // Validasyon
     const validation = validateMessage(messageText);
     if (!validation.valid) {
+      console.warn('GeneralChat: Validasyon hatası:', validation.error);
       setValidationError(validation.error);
-      setTimeout(() => setValidationError(''), 3000); // 3 saniye sonra kapat
+      setTimeout(() => setValidationError(''), 3000);
       return;
     }
 
@@ -97,17 +103,23 @@ export default function GeneralChat() {
     try {
       const now = new Date();
       
-      await push(ref(rtdb, 'chat/general/messages'), {
+      const messageData = {
         text: messageText.trim(),
         userId: user.uid,
         userEmail: user.email,
         timestamp: now.toISOString(),
         displayName: user.displayName || user.email.split('@')[0]
-      });
+      };
+
+      console.log('GeneralChat: Firebase\'e yazılıyor...', messageData);
+      
+      await push(ref(rtdb, 'chat/general/messages'), messageData);
+      
+      console.log('GeneralChat: Mesaj başarıyla gönderildi!');
       setMessageText('');
     } catch (error) {
-      console.error('Mesaj gönderme hatası:', error);
-      setValidationError('Mesaj gönderilemedi');
+      console.error('GeneralChat: Mesaj gönderme hatası:', error);
+      setValidationError('Mesaj gönderilemedi: ' + error.message);
     } finally {
       setLoading(false);
     }
