@@ -15,12 +15,17 @@ export default function AddFriendModal({ isOpen, onClose }) {
 
   // Tüm kullanıcıları yükle (realtime listener)
   useEffect(() => {
-    if (!isOpen || !user) return;
+    if (!isOpen || !user) {
+      console.log('AddFriendModal: Modal kapalı veya user yok', { isOpen, user: !!user });
+      return;
+    }
     
+    console.log('AddFriendModal: Kullanıcılar yükleniyor...');
     setLoading(true);
     const usersRef = ref(rtdb, 'users');
     
     const unsubscribe = onValue(usersRef, (snapshot) => {
+      console.log('AddFriendModal: Snapshot alındı', { exists: snapshot.exists() });
       const users = [];
       
       if (snapshot.exists()) {
@@ -29,13 +34,17 @@ export default function AddFriendModal({ isOpen, onClose }) {
             users.push({ uid: child.key, ...child.val() });
           }
         });
+        console.log('AddFriendModal: Kullanıcılar bulundu:', users.length, users);
+      } else {
+        console.log('AddFriendModal: Snapshot boş - kullanıcı yok');
       }
       
       setAllUsers(users);
       setSearchResults(users);
       setLoading(false);
     }, (error) => {
-      console.error('Kullanıcılar yüklenirken hata:', error);
+      console.error('AddFriendModal: Kullanıcılar yüklenirken hata:', error);
+      setMessage('Kullanıcılar yüklenemedi: ' + error.message);
       setLoading(false);
     });
 
