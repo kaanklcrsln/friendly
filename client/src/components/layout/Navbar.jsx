@@ -42,7 +42,7 @@ export default function Navbar() {
       <nav className={styles.navbar}>
         <div className={styles.container}>
           <div className={styles.logo}>
-            <img src="/Friendly/assets/friendly-logo_trans.png" alt="Friendly Logo" />
+            <img src="/friendly/assets/friendly-logo_trans.png" alt="Friendly Logo" />
           </div>
 
           <div className={styles.actions}>

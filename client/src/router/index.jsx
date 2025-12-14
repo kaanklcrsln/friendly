@@ -80,7 +80,7 @@ const router = createBrowserRouter(
     { path: '/', element: <Navigate to="/main" replace /> },
     { path: '*', element: <Navigate to="/main" replace /> },
   ],
-  { basename: '/Friendly' }
+  { basename: '/friendly' }
 );
 
 export default router;
