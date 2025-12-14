@@ -6,3 +6,7 @@ node_modules
 client/.env
 server/.env
 dist
+
+# Allow production env files
+!client/.env.production
+!server/.env.production
