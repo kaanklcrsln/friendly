@@ -68,17 +68,21 @@ export default function AddFriendModal({ isOpen, onClose }) {
 
   const sendFriendRequest = async (toUserId) => {
     try {
+      console.log('AddFriendModal: İstek gönderiliyor...', { from: user.uid, to: toUserId });
+      
       // Daha önce istek gönderilmiş mi kontrol et
-      const requestsRef = ref(rtdb, 'friendRequests');
-      const snapshot = await get(requestsRef);
+      const allRequestsRef = ref(rtdb, 'friendRequests');
+      const snapshot = await get(allRequestsRef);
       
       if (snapshot.exists()) {
         let alreadySent = false;
         snapshot.forEach((child) => {
-          const data = child.val();
-          if (data.from === user.uid && data.to === toUserId) {
-            alreadySent = true;
-          }
+          child.forEach((request) => {
+            const data = request.val();
+            if (data.from === user.uid && data.to === toUserId && data.status === 'pending') {
+              alreadySent = true;
+            }
+          });
         });
         
         if (alreadySent) {
@@ -87,7 +91,10 @@ export default function AddFriendModal({ isOpen, onClose }) {
         }
       }
 
-      const newRequestRef = push(requestsRef);
+      // Hedef kullanıcının friendRequests altına kaydet
+      const userRequestsRef = ref(rtdb, `friendRequests/${toUserId}`);
+      const newRequestRef = push(userRequestsRef);
+      
       await set(newRequestRef, {
         from: user.uid,
         to: toUserId,
@@ -95,14 +102,15 @@ export default function AddFriendModal({ isOpen, onClose }) {
         createdAt: Date.now()
       });
 
+      console.log('AddFriendModal: İstek başarıyla gönderildi!');
       setMessage('Arkadaşlık isteği gönderildi! ✅');
       setSearchResults(prev =>
         prev.map(u => u.uid === toUserId ? { ...u, requestSent: true } : u)
       );
       setSelectedUser(null);
     } catch (error) {
-      console.error('İstek gönderme hatası:', error);
-      setMessage('İstek gönderilirken hata oluştu');
+      console.error('AddFriendModal: İstek gönderme hatası:', error);
+      setMessage('İstek gönderilirken hata oluştu: ' + error.message);
     }
   };
 

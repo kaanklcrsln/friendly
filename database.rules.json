@@ -12,6 +12,16 @@
         }
       }
     },
+    "friendRequests": {
+      "$userId": {
+        ".read": "$userId === auth.uid",
+        ".write": "auth != null",
+        "$requestId": {
+          ".read": "$userId === auth.uid",
+          ".write": "auth != null"
+        }
+      }
+    },
     "events": {
       ".read": "auth != null",
       ".write": "auth != null",
