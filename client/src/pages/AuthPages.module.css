@@ -81,6 +81,23 @@
   font-size: var(--font-size-sm);
 }
 
+.successMessage {
+  background: #d1fae5;
+  color: #065f46;
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-lg);
+  border-left: 4px solid #10b981;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  text-align: center;
+}
+
+:global(.dark-mode) .successMessage {
+  background: #064e3b;
+  color: #6ee7b7;
+}
+
 .form {
   display: flex;
   flex-direction: column;

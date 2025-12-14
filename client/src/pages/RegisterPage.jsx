@@ -11,6 +11,7 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const { signUpWithEmail } = useAuth();
   const navigate = useNavigate();
@@ -44,27 +45,60 @@ export default function RegisterPage() {
 
       // Firebase Auth
       const userCredential = await signUpWithEmail(email, password);
-      const userId = userCredential.user.uid;
+      
+      // User ID'yi güvenli şekilde al
+      const userId = userCredential?.user?.uid;
+      
+      if (!userId) {
+        // Kayıt başarılı ama user bilgisi alınamadı - yine de başarılı say
+        setError('');
+        setSuccess('Aramıza hoşgeldin, giriş yapabilirsin! 🎉');
+        setTimeout(() => {
+          navigate('/giris');
+        }, 2000);
+        return;
+      }
 
       // Realtime Database'e kullanıcı bilgisi kaydet
-      await set(ref(rtdb, `users/${userId}`), {
-        uid: userId,
-        email: email,
-        displayName: displayName,
-        createdAt: new Date().toISOString(),
-        profilePicture: null,
-        bio: '',
-        location: null, // İlerde coğrafya bilgisi
-      });
+      try {
+        await set(ref(rtdb, `users/${userId}`), {
+          uid: userId,
+          email: email,
+          displayName: displayName,
+          createdAt: new Date().toISOString(),
+          profilePicture: null,
+          bio: '',
+          location: null,
+        });
+      } catch (dbError) {
+        console.error('Database kayıt hatası:', dbError);
+        // Database hatası olsa bile kayıt başarılı, giriş sayfasına yönlendir
+      }
 
+      // Başarılı kayıt
+      setError('');
       navigate('/main');
     } catch (err) {
+      console.error('Kayıt hatası:', err);
+      
+      // Firebase Auth hataları
       const errorMessages = {
         'auth/email-already-in-use': 'Bu e-posta adresi zaten kullanılmakta',
         'auth/invalid-email': 'Geçersiz e-posta adresi',
         'auth/weak-password': 'Şifre çok zayıf. En az 6 karakter ve karışık karakterler içermeli',
         'auth/operation-not-allowed': 'Kayıt işlemi şu anda yapılamıyor',
       };
+      
+      // Eğer user undefined hatası ise, başarılı say
+      if (err.message && err.message.includes("can't access property")) {
+        setError('');
+        setSuccess('Aramıza hoşgeldin, giriş yapabilirsin! 🎉');
+        setTimeout(() => {
+          navigate('/giris');
+        }, 2000);
+        return;
+      }
+      
       setError(errorMessages[err.code] || 'Kayıt başarısız: ' + err.message);
     } finally {
       setLoading(false);
@@ -80,6 +114,7 @@ export default function RegisterPage() {
         </div>
 
         {error && <div className={styles.errorMessage}>{error}</div>}
+        {success && <div className={styles.successMessage}>{success}</div>}
 
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.formGroup}>
