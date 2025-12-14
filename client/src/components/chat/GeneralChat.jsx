@@ -54,7 +54,7 @@ export default function GeneralChat() {
   useEffect(() => {
     if (!user) return;
 
-    const chatRef = ref(rtdb, 'chat/general');
+    const chatRef = ref(rtdb, 'chat/kişiler/genel/mesajlar');
     const chatQuery = query(chatRef, orderByChild('timestamp'));
     
     const unsubscribe = onValue(chatQuery, (snapshot) => {
@@ -97,7 +97,7 @@ export default function GeneralChat() {
     try {
       const now = new Date();
       
-      await push(ref(rtdb, 'chat/general'), {
+      await push(ref(rtdb, 'chat/kişiler/genel/mesajlar'), {
         text: messageText.trim(),
         userId: user.uid,
         userEmail: user.email,
@@ -120,7 +120,7 @@ export default function GeneralChat() {
     }
 
     try {
-      await remove(ref(rtdb, `chat/general/${messageId}`));
+      await remove(ref(rtdb, `chat/kişiler/genel/mesajlar/${messageId}`));
     } catch (error) {
       console.error('Mesaj silinirken hata:', error);
     }

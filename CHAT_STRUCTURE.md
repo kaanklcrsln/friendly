@@ -5,26 +5,25 @@ DATABASE STRUCTURE:
 ==================
 
 /chat
-  /general
-    {messageId}:
-      - text: "message content"
-      - userId: "user_uid"
-      - userEmail: "user@email.com"
-      - timestamp: "2024-12-13T..."
-      - avatar: "url" (optional)
-  
-  /private
-    /{conversationId}
-      /messages
+  /kişiler
+    /genel
+      /mesajlar
         {messageId}:
           - text: "message content"
           - userId: "user_uid"
           - userEmail: "user@email.com"
           - timestamp: "2024-12-13T..."
-          - avatar: "url"
-      
-      /participants
-        {userId}: true
+          - displayName: "username"
+    
+    /özel
+      /mesajlar
+        /{conversationId}
+          {messageId}:
+            - text: "message content"
+            - userId: "user_uid"
+            - userEmail: "user@email.com"
+            - timestamp: "2024-12-13T..."
+            - displayName: "username"
 
 /users
   /{userId}

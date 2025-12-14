@@ -30,7 +30,7 @@ export default function PrivateChat({ conversationId, friendId, friendEmail, onC
   useEffect(() => {
     if (!user || !conversationId || !isFriend) return;
 
-    const messagesRef = ref(rtdb, `chat/private/${conversationId}/messages`);
+    const messagesRef = ref(rtdb, `chat/kişiler/özel/mesajlar/${conversationId}`);
     const messagesQuery = query(messagesRef, orderByChild('timestamp'));
 
     const unsubscribe = onValue(messagesQuery, (snapshot) => {
@@ -60,7 +60,7 @@ export default function PrivateChat({ conversationId, friendId, friendEmail, onC
 
     setLoading(true);
     try {
-      await push(ref(rtdb, `chat/private/${conversationId}/messages`), {
+      await push(ref(rtdb, `chat/kişiler/özel/mesajlar/${conversationId}`), {
         text: messageText.trim(),
         userId: user.uid,
         userEmail: user.email,
