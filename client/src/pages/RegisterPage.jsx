@@ -61,6 +61,7 @@ export default function RegisterPage() {
 
       // Realtime Database'e kullanıcı bilgisi kaydet
       try {
+        console.log('RegisterPage: Kullanıcı database\'e kaydediliyor...', userId);
         await set(ref(rtdb, `users/${userId}`), {
           uid: userId,
           email: email,
@@ -70,8 +71,9 @@ export default function RegisterPage() {
           bio: '',
           location: null,
         });
+        console.log('RegisterPage: Kullanıcı başarıyla kaydedildi!');
       } catch (dbError) {
-        console.error('Database kayıt hatası:', dbError);
+        console.error('RegisterPage: Database kayıt hatası:', dbError);
         // Database hatası olsa bile kayıt başarılı, giriş sayfasına yönlendir
       }
 
