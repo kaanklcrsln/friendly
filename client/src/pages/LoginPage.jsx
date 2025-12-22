@@ -51,11 +51,11 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.formGroup}>
-            <label htmlFor="email">E-posta</label>
+            <label htmlFor="email">Öğrenci E-posta</label>
             <input
               id="email"
               type="email"
-              placeholder="ornek@example.com"
+              placeholder="kaankilicarslan@hacettepe.edu.tr"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={loading}
