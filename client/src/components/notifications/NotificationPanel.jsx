@@ -69,9 +69,11 @@ export default function NotificationPanel({ isOpen, onClose }) {
     const userId = auth.currentUser.uid;
     
     try {
-      // Add to both users' friend lists
-      const userFriendsRef = ref(rtdb, `friends/${userId}/${request.from}`);
-      const senderFriendsRef = ref(rtdb, `friends/${request.from}/${userId}`);
+      console.log('NotificationPanel: Arkadaşlık isteği kabul ediliyor...', { userId, from: request.from });
+      
+      // Add to both users' friend lists (correct path)
+      const userFriendsRef = ref(rtdb, `users/${userId}/friends/${request.from}`);
+      const senderFriendsRef = ref(rtdb, `users/${request.from}/friends/${userId}`);
       
       await set(userFriendsRef, {
         addedAt: Date.now(),
@@ -83,9 +85,13 @@ export default function NotificationPanel({ isOpen, onClose }) {
         status: 'accepted'
       });
 
-      // Update request status
+      console.log('NotificationPanel: Arkadaş listeleri güncellendi');
+
+      // Remove the request completely
       const requestRef = ref(rtdb, `friendRequests/${userId}/${request.id}`);
-      await update(requestRef, { status: 'accepted' });
+      await remove(requestRef);
+      
+      console.log('NotificationPanel: Arkadaşlık isteği silindi');
 
       // Send notification to requester
       const notificationRef = push(ref(rtdb, `notifications/${request.from}`));
@@ -96,6 +102,8 @@ export default function NotificationPanel({ isOpen, onClose }) {
         timestamp: Date.now(),
         read: false
       });
+      
+      console.log('NotificationPanel: Kabul bildirim gönderildi');
 
     } catch (error) {
       console.error('Error accepting friend request:', error);
@@ -106,10 +114,14 @@ export default function NotificationPanel({ isOpen, onClose }) {
     const userId = auth.currentUser.uid;
     
     try {
+      console.log('NotificationPanel: Arkadaşlık isteği reddediliyor...', { userId, requestId: request.id });
+      
       const requestRef = ref(rtdb, `friendRequests/${userId}/${request.id}`);
       await remove(requestRef);
+      
+      console.log('NotificationPanel: Arkadaşlık isteği başarıyla reddedildi');
     } catch (error) {
-      console.error('Error rejecting friend request:', error);
+      console.error('NotificationPanel: Red hatası:', error);
     }
   };
 
