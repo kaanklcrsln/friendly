@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ref, push } from 'firebase/database';
+import { ref, push, get, set } from 'firebase/database';
 import { rtdb } from '../../api/firebase';
 import { useAuth } from '../../hooks/useAuth';
 import { isAdmin } from '../../utils/adminConfig';
@@ -42,12 +42,57 @@ export default function BottomBar() {
         ...formData,
         createdBy: user.uid,
         createdByEmail: user.email,
+        createdByName: user.displayName || user.email.split('@')[0],
         createdAt: new Date().toISOString(),
         participation: { [user.uid]: 'approved' },
         participantCount: 1
       };
 
-      await push(ref(rtdb, 'events'), eventData);
+      // Etkinliği oluştur
+      const eventRef = await push(ref(rtdb, 'events'), eventData);
+      const eventId = eventRef.key;
+
+      console.log('BottomBar: Yeni etkinlik oluşturuldu:', eventId);
+
+      // Tüm kullanıcıları al ve bildirim gönder
+      try {
+        const usersRef = ref(rtdb, 'users');
+        const usersSnapshot = await get(usersRef);
+        
+        if (usersSnapshot.exists()) {
+          const users = usersSnapshot.val();
+          const creatorName = user.displayName || user.email.split('@')[0];
+          
+          // Her kullanıcıya bildirim gönder (kendisi hariç)
+          const notificationPromises = Object.keys(users)
+            .filter(userId => userId !== user.uid)
+            .map(async userId => {
+              try {
+                const notificationRef = push(ref(rtdb, `notifications/${userId}`));
+                return await set(notificationRef, {
+                  type: 'new_event',
+                  eventId: eventId,
+                  eventTitle: formData.title,
+                  from: user.uid,
+                  fromName: creatorName,
+                  message: `${creatorName} yeni bir etkinlik oluşturdu!`,
+                  timestamp: Date.now(),
+                  read: false
+                });
+              } catch (notificationError) {
+                console.error(`BottomBar: ${userId} kullanıcısına bildirim gönderilemedi:`, notificationError);
+                // Bildirim hatası etkinlik oluşumunu engellemez
+                return null;
+              }
+            });
+            
+          await Promise.allSettled(notificationPromises);
+          console.log('BottomBar: Etkinlik bildirimleri gönderildi');
+        }
+      } catch (notificationError) {
+        console.error('BottomBar: Bildirim gönderme hatası:', notificationError);
+        // Bildirim hatası etkinlik oluşumunu engellemez
+      }
       
       // Formu sıfırla ve modalı kapat
       setFormData({

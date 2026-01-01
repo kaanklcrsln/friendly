@@ -1,8 +1,11 @@
 .chatContainer {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
+  max-height: 100%;
   background: white;
+  overflow: hidden;
 }
 
 :global(.dark-mode) .chatContainer {
@@ -17,6 +20,9 @@
   padding: var(--spacing-md);
   border-bottom: 1px solid var(--color-border);
   background: #D9EBFF;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
 }
 
 :global(.dark-mode) .chatHeader {
@@ -50,11 +56,15 @@
 .messagesList {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: var(--spacing-md);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
   position: relative;
+  min-height: 0;
+  max-height: 100%;
+  overflow-anchor: none;
 }
 
 :global(.dark-mode) .messagesList {
@@ -66,12 +76,21 @@
   background: rgba(0, 0, 0, 0.7);
   padding: var(--spacing-lg);
   position: relative;
-  z-index: 0;
+  z-index: 1;
   border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+  opacity: 1;
+  transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+  visibility: visible;
+  flex-shrink: 0;
 }
 
 :global(.dark-mode) .rulesBackground {
   background: rgba(0, 0, 0, 0.5);
+}
+
+.rulesBackground.fadeOut {
+  opacity: 0;
+  visibility: hidden;
 }
 
 .rulesText {
@@ -105,6 +124,8 @@
   border-radius: var(--radius-md);
   border-left: 3px solid var(--color-border);
   animation: slideIn 0.2s ease-out;
+  will-change: auto;
+  contain: layout;
 }
 
 :global(.dark-mode) .message {
@@ -207,7 +228,6 @@
 
 .deleteMessageBtn:hover {
   background: rgba(239, 68, 68, 0.1);
-  transform: scale(1.15);
 }
 
 :global(.dark-mode) .deleteMessageBtn:hover {
@@ -236,6 +256,9 @@
   padding: var(--spacing-md);
   border-top: 1px solid var(--color-border);
   background: white;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
 }
 
 :global(.dark-mode) .inputForm {
@@ -324,12 +347,11 @@
 
 .sendBtn:hover:not(:disabled) {
   background: #2c5aa0;
-  transform: translateY(-1px);
   box-shadow: var(--shadow-sm);
 }
 
 .sendBtn:active:not(:disabled) {
-  transform: translateY(0);
+  box-shadow: none;
 }
 
 .sendBtn:disabled {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ref, onValue, update, remove } from 'firebase/database';
+import { ref, onValue, update, remove, get, push, set } from 'firebase/database';
 import { rtdb } from '../../api/firebase';
 import { useAuth } from '../../hooks/useAuth';
 import { isAdmin } from '../../utils/adminConfig';
@@ -16,7 +16,7 @@ export default function EventsPanel() {
   // Firebase'den etkinlikleri yükle
   useEffect(() => {
     const eventsRef = ref(rtdb, 'events');
-    const unsubscribe = onValue(eventsRef, (snapshot) => {
+    const unsubscribe = onValue(eventsRef, async (snapshot) => {
       const eventsData = [];
       if (snapshot.exists()) {
         snapshot.forEach((child) => {
@@ -28,21 +28,88 @@ export default function EventsPanel() {
       }
       // Tarihe göre sırala
       eventsData.sort((a, b) => new Date(a.date) - new Date(b.date));
+      
+      // Eksik createdByName alanlarını güncelle
+      await updateMissingCreatorNames(eventsData);
+      
       setEvents(eventsData);
     });
 
     return () => unsubscribe();
   }, []);
 
+  // Eksik createdByName alanlarını güncelle
+  const updateMissingCreatorNames = async (events) => {
+    const updates = {};
+    
+    for (const event of events) {
+      if (event.createdBy && !event.createdByName) {
+        try {
+          // Kullanıcı bilgilerini al
+          const userRef = ref(rtdb, `users/${event.createdBy}`);
+          const userSnapshot = await get(userRef);
+          
+          if (userSnapshot.exists()) {
+            const userData = userSnapshot.val();
+            const createdByName = userData.displayName || userData.email?.split('@')[0] || 'Bilinmeyen';
+            
+            // Güncelleme listesine ekle
+            updates[`events/${event.id}/createdByName`] = createdByName;
+          }
+        } catch (error) {
+          console.error('Kullanıcı bilgisi yüklenirken hata:', error);
+        }
+      }
+    }
+    
+    // Toplu güncelleme yap
+    if (Object.keys(updates).length > 0) {
+      try {
+        await update(ref(rtdb), updates);
+        console.log('Eksik creator name\'ler güncellendi:', Object.keys(updates).length);
+      } catch (error) {
+        console.error('Creator name güncellenirken hata:', error);
+      }
+    }
+  };
+
   // Katılım/Red durumunu güncelle
   const handleParticipationChange = async (eventId, status) => {
     if (!user) return;
     
     try {
-      const eventRef = ref(rtdb, `events/${eventId}/participation/${user.uid}`);
+      // Katılım durumunu güncelle
       await update(ref(rtdb, `events/${eventId}`), {
         [`participation/${user.uid}`]: status
       });
+      
+      // Eğer katılıyor durumu seçildiyse, etkinlik sahibine bildirim gönder
+      if (status === 'joining') {
+        // Etkinlik bilgilerini al
+        const eventRef = ref(rtdb, `events/${eventId}`);
+        const eventSnapshot = await get(eventRef);
+        
+        if (eventSnapshot.exists()) {
+          const eventData = eventSnapshot.val();
+          const eventCreator = eventData.createdBy;
+          
+          // Kendi etkinliğinde değilse bildirim gönder
+          if (eventCreator && eventCreator !== user.uid) {
+            const notificationRef = push(ref(rtdb, `notifications/${eventCreator}`));
+            await set(notificationRef, {
+              type: 'event_participation',
+              from: user.uid,
+              eventId: eventId,
+              eventTitle: eventData.title,
+              message: `${user.displayName || user.email?.split('@')[0] || 'Bir kullanıcı'} "${eventData.title}" etkinliğine gelmeyi kabul etti!`,
+              timestamp: Date.now(),
+              read: false
+            });
+            
+            console.log('Etkinlik katılım bildirimi gönderildi');
+          }
+        }
+      }
     } catch (error) {
       console.error('Katılım durumu güncellenirken hata:', error);
     }
@@ -141,7 +208,15 @@ export default function EventsPanel() {
           return (
             <div key={event.id} className={`${styles.eventCard} ${event.isDeleted ? styles.deleted : ''}`}>
               <div className={styles.eventHeader}>
-                <h3>{event.title}</h3>
+                <div className={styles.eventTitleSection}>
+                  <h3>{event.title}</h3>
+                  <div className={styles.creatorInfo}>
+                    <span className={styles.creatorName}>
+                      {event.createdByName || event.createdByEmail?.split('@')[0] || 'Bilinmeyen'}
+                    </span>
+                    <span className={styles.creatorLabel}>tarafından oluşturuldu</span>
+                  </div>
+                </div>
                 <div className={styles.headerIcons}>
                   {isAdmin(event.createdByEmail) && (
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className={styles.verifiedBadge} title="Admin tarafından oluşturuldu">

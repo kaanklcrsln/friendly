@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useImperativeHandle, forwardRef } from 'react';
 import { ref, onValue, update } from 'firebase/database';
 import { rtdb } from '../../api/firebase';
 import { useAuth } from '../../hooks/useAuth';
@@ -209,6 +209,44 @@ export default function MapContainer() {
     });
   }, [events, user]);
 
+  // Global etkinlik zoomlama fonksiyonu
+  useEffect(() => {
+    window.focusEventOnMap = (eventId) => {
+      console.log('MapContainer: Etkinlik zoomlanıyor:', eventId);
+      const targetEvent = events.find(e => e.id === eventId);
+      if (targetEvent && targetEvent.coordinates && mapInstanceRef.current) {
+        console.log('MapContainer: Etkinlik bulundu, zoomlaniyor:', targetEvent);
+        const position = {
+          lat: typeof targetEvent.coordinates.lat === 'function' ? targetEvent.coordinates.lat() : targetEvent.coordinates.lat,
+          lng: typeof targetEvent.coordinates.lng === 'function' ? targetEvent.coordinates.lng() : targetEvent.coordinates.lng
+        };
+        
+        // Haritayı etkinlik konumuna zoom yap
+        mapInstanceRef.current.setCenter(position);
+        mapInstanceRef.current.setZoom(16);
+        
+        // Etkinlik marker'ını bul ve InfoWindow aç
+        const targetMarker = markersRef.current.find((marker, index) => {
+          const markerEvent = events[index];
+          return markerEvent && markerEvent.id === eventId;
+        });
+        
+        if (targetMarker) {
+          console.log('MapContainer: Marker bulundu, InfoWindow açılıyor');
+          // Marker'ı tıkla (InfoWindow açar)
+          window.google.maps.event.trigger(targetMarker, 'click');
+        }
+      } else {
+        console.log('MapContainer: Etkinlik bulunamadı veya harita hazır değil:', { eventId, targetEvent, mapReady: !!mapInstanceRef.current });
+      }
+    };
+
+    // Cleanup
+    return () => {
+      delete window.focusEventOnMap;
+    };
+  }, [events]);
+
   const changeMapType = (type) => {
     setMapType(type);
     if (mapInstanceRef.current) {
@@ -227,14 +265,14 @@ export default function MapContainer() {
           onClick={() => changeMapType('satellite')}
           title="Uydu Görüntüsü"
         >
-          🛰️ Uydu
+          Uydu 
         </button>
         <button
           className={`${styles.layerBtn} ${mapType === 'roadmap' ? styles.active : ''}`}
           onClick={() => changeMapType('roadmap')}
           title="Harita"
         >
-          🗺️ Harita
+          Harita
         </button>
       </div>
 

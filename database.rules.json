@@ -5,6 +5,18 @@
       "$uid": {
         ".read": "auth != null",
         ".write": "auth != null && auth.uid == $uid",
+        "email": {
+          ".read": "auth != null"
+        },
+        "displayName": {
+          ".read": "auth != null"
+        },
+        "university": {
+          ".read": "auth != null"
+        },
+        "profilePicture": {
+          ".read": "auth != null"
+        },
         "friends": {
           "$friendId": {
             ".write": "auth != null && (auth.uid == $uid || auth.uid == $friendId)"
@@ -28,6 +40,22 @@
       "$eventId": {
         ".read": "auth != null",
         ".write": "auth != null"
+      }
+    },
+    "notifications": {
+      "$userId": {
+        ".read": "$userId === auth.uid",
+        ".write": "auth != null",
+        "$notificationId": {
+          ".read": "$userId === auth.uid",
+          ".write": "auth != null"
+        }
+      }
+    },
+    "presence": {
+      "$userId": {
+        ".read": "auth != null",
+        ".write": "$userId === auth.uid"
       }
     },
     "chat": {

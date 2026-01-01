@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ref, onValue, push, query, orderByChild, get } from 'firebase/database';
+import { ref, onValue, push, query, orderByChild, get, onDisconnect, set } from 'firebase/database';
 import { rtdb } from '../../api/firebase';
 import { useAuth } from '../../hooks/useAuth';
 import styles from './PrivateChat.module.css';
@@ -7,11 +7,13 @@ import styles from './PrivateChat.module.css';
 export default function PrivateChat() {
   const [friends, setFriends] = useState([]);
   const [friendsData, setFriendsData] = useState({});
+  const [onlineStatus, setOnlineStatus] = useState({});
   const [selectedFriend, setSelectedFriend] = useState(null);
   const [messages, setMessages] = useState([]);
   const [messageText, setMessageText] = useState('');
   const [loading, setLoading] = useState(false);
-  const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
+  const shouldScrollRef = useRef(true);
   const { user } = useAuth();
 
   // Arkadaşları yükle
@@ -44,7 +46,16 @@ export default function PrivateChat() {
           const friendRef = ref(rtdb, `users/${friendId}`);
           const friendSnap = await get(friendRef);
           if (friendSnap.exists()) {
-            tempData[friendId] = friendSnap.val();
+            const userData = friendSnap.val();
+            // Veri bütünlüğünü kontrol et
+            if (userData && typeof userData === 'object') {
+              tempData[friendId] = {
+                displayName: userData.displayName || null,
+                email: userData.email || null,
+                profilePicture: userData.profilePicture || null,
+                ...userData
+              };
+            }
           }
         } catch (error) {
           console.error('Arkadaş bilgisi yükleme hatası:', error);
@@ -53,9 +64,80 @@ export default function PrivateChat() {
       
       console.log('PrivateChat: Arkadaş verileri:', tempData);
       setFriendsData(tempData);
+      
+      // Arkadaşların çevrimiçi durumunu takip et
+      trackFriendsOnlineStatus(friendIds);
     });
 
     return () => unsubscribe();
+  }, [user]);
+
+  // Arkadaşların çevrimiçi durumunu takip et
+  const trackFriendsOnlineStatus = (friendIds) => {
+    const statusUnsubscribes = [];
+    const tempStatus = {};
+
+    friendIds.forEach(friendId => {
+      const statusRef = ref(rtdb, `presence/${friendId}`);
+      const unsubscribe = onValue(statusRef, (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          tempStatus[friendId] = data.online || false;
+        } else {
+          tempStatus[friendId] = false;
+        }
+        setOnlineStatus({...tempStatus});
+      });
+      statusUnsubscribes.push(unsubscribe);
+    });
+
+    return () => {
+      statusUnsubscribes.forEach(unsub => unsub());
+    };
+  };
+
+  // Kullanıcının kendi presence durumunu ayarla
+  useEffect(() => {
+    if (!user?.uid) return;
+
+    const userStatusRef = ref(rtdb, `presence/${user.uid}`);
+    
+    // Çevrimiçi olarak işaretle
+    const setOnline = async () => {
+      await set(userStatusRef, {
+        online: true,
+        lastSeen: Date.now()
+      });
+    };
+
+    // Çevrimdışı olma durumunu ayarla
+    const setOffline = async () => {
+      await set(userStatusRef, {
+        online: false,
+        lastSeen: Date.now()
+      });
+    };
+
+    setOnline();
+
+    // Tarayıcı kapandığında çevrimdışı yap
+    const onDisconnectRef = onDisconnect(userStatusRef);
+    onDisconnectRef.set({
+      online: false,
+      lastSeen: Date.now()
+    });
+
+    // Sayfa kapatılırken de çevrimdışı yap
+    const handleBeforeUnload = () => {
+      setOffline();
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      setOffline();
+    };
   }, [user]);
 
   // Seçilen arkadaşla mesajları yükle
@@ -86,8 +168,18 @@ export default function PrivateChat() {
   }, [user, selectedFriend]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesContainerRef.current && shouldScrollRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
   }, [messages]);
+
+  // Scroll pozisyonunu takip et
+  const handleScroll = () => {
+    if (messagesContainerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
+      shouldScrollRef.current = scrollHeight - scrollTop - clientHeight < 20;
+    }
+  };
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -105,6 +197,7 @@ export default function PrivateChat() {
         displayName: user.displayName || user.email.split('@')[0]
       });
       setMessageText('');
+      shouldScrollRef.current = true;
     } catch (error) {
       console.error('Mesaj gönderme hatası:', error);
     } finally {
@@ -118,7 +211,7 @@ export default function PrivateChat() {
     <div className={styles.chatContainer}>
       {!selectedFriend ? (
         <div className={styles.friendsList}>
-          <div className={styles.header}>
+          <div className={styles.friendsHeader}>
             <h3>Arkadaşlarınız</h3>
           </div>
           
@@ -128,10 +221,15 @@ export default function PrivateChat() {
               <p>Arkadaş eklemek için bildirimler kısmını kontrol edin!</p>
             </div>
           ) : (
-            <div className={styles.friendItems}>
+            <div className={styles.friendsListItems}>
               {friends.map((friendId) => {
                 const friendData = friendsData[friendId];
-                if (!friendData) return null;
+                
+                // Veri güvenliği kontrolleri
+                if (!friendData || typeof friendData !== 'object') {
+                  console.warn('PrivateChat: Geçersiz arkadaş verisi:', friendId, friendData);
+                  return null;
+                }
                 
                 return (
                   <div
@@ -139,18 +237,26 @@ export default function PrivateChat() {
                     className={styles.friendItem}
                     onClick={() => setSelectedFriend(friendId)}
                   >
-                    {friendData.profilePicture ? (
-                      <img 
-                        src={friendData.profilePicture} 
-                        alt={friendData.displayName}
-                        className={styles.friendAvatar}
-                      />
-                    ) : (
-                      <div className={styles.friendAvatarPlaceholder}>👤</div>
-                    )}
+                    <div className={styles.friendAvatar}>
+                      {friendData.profilePicture ? (
+                        <img 
+                          src={friendData.profilePicture} 
+                          alt={friendData.displayName}
+                        />
+                      ) : (
+                        <div className={styles.avatarPlaceholder}>👤</div>
+                      )}
+                    </div>
+                    
                     <div className={styles.friendInfo}>
-                      <h4>{friendData.displayName}</h4>
-                      <p>{friendData.email}</p>
+                      <span className={styles.friendName}>
+                        {friendData.displayName || 
+                         (friendData.email ? friendData.email.split('@')[0] : 'Kullanıcı')}
+                      </span>
+                    </div>
+                    
+                    <div className={styles.onlineStatus}>
+                      <div className={`${styles.statusIndicator} ${onlineStatus[friendId] ? styles.online : styles.offline}`}></div>
                     </div>
                   </div>
                 );
@@ -167,13 +273,18 @@ export default function PrivateChat() {
             >
               ← Geri
             </button>
-            <h3>{friendsData[selectedFriend]?.displayName}</h3>
+            <h3>
+              {friendsData[selectedFriend]?.displayName || 
+               (friendsData[selectedFriend]?.email ? 
+                 friendsData[selectedFriend].email.split('@')[0] : 
+                 'Kullanıcı')}
+            </h3>
           </div>
           
-          <div className={styles.messagesList}>
+          <div className={styles.messagesList} ref={messagesContainerRef} onScroll={handleScroll}>
             {messages.length === 0 ? (
-              <div className={styles.emptyChat}>
-                <p>Henüz mesaj yok. Sohbeti başlat!</p>
+              <div className={styles.emptyState}>
+                <p>Henüz mesaj yok. İlk mesajı gönder!</p>
               </div>
             ) : (
               messages.map((message) => (
@@ -198,7 +309,6 @@ export default function PrivateChat() {
                 </div>
               ))
             )}
-            <div ref={messagesEndRef} />
           </div>
 
           <form onSubmit={handleSendMessage} className={styles.inputForm}>

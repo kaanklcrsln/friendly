@@ -1,9 +1,12 @@
 .chatContainer {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
+  max-height: 100%;
   background: white;
   border-left: 1px solid var(--color-border);
+  overflow: hidden;
 }
 
 :global(.dark-mode) .chatContainer {
@@ -20,6 +23,9 @@
   border-bottom: 1px solid var(--color-border);
   background: #D9EBFF;
   gap: var(--spacing-sm);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
 }
 
 :global(.dark-mode) .chatHeader {
@@ -74,10 +80,14 @@
 .messagesList {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: var(--spacing-md);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
+  min-height: 0;
+  max-height: 100%;
+  overflow-anchor: none;
 }
 
 :global(.dark-mode) .messagesList {
@@ -97,6 +107,152 @@
 .notFriendsMessage p {
   margin: 0;
   text-align: center;
+}
+
+/* Arkadaş Listesi Stilleri */
+.friendsList {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.friendsListItems {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.friendsHeader {
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--color-border);
+  background: #f8fafc;
+}
+
+:global(.dark-mode) .friendsHeader {
+  background: #2d3748;
+  border-bottom-color: #4a5568;
+}
+
+.friendsHeader h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.emptyFriends {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xl);
+  color: var(--color-text-secondary);
+}
+
+.emptyFriends p {
+  margin: 0;
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* Arkadaş Öğesi - Yatay Dikdörtgen */
+.friendItem {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+:global(.dark-mode) .friendItem {
+  background: #1b1f3b;
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+.friendItem:hover {
+  background: #f8fafc;
+}
+
+:global(.dark-mode) .friendItem:hover {
+  background: #2d3748;
+}
+
+.friendItem:last-child {
+  border-bottom: none;
+}
+
+/* Profil Resmi - Yuvarlak */
+.friendAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: 12px;
+  flex-shrink: 0;
+  background: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.friendAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.avatarPlaceholder {
+  font-size: 20px;
+  color: #64748b;
+}
+
+/* Kullanıcı Bilgileri */
+.friendInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.friendName {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Çevrimiçi Durum */
+.onlineStatus {
+  display: flex;
+  align-items: center;
+  margin-left: 8px;
+}
+
+.statusIndicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ef4444; /* Kırmızı - Çevrimdışı */
+  transition: background-color 0.2s ease;
+}
+
+/* Çevrimiçi durumu için yeşil */
+.statusIndicator.online {
+  background: #22c55e;
+}
+
+/* Çevrimdışı durumu için kırmızı (default) */
+.statusIndicator.offline {
+  background: #ef4444;
 }
 
 .closeChat {
@@ -133,6 +289,8 @@
   border-radius: var(--radius-md);
   border-left: 3px solid var(--color-border);
   animation: slideIn 0.2s ease-out;
+  will-change: auto;
+  contain: layout;
 }
 
 :global(.dark-mode) .message {
@@ -233,6 +391,9 @@
   padding: var(--spacing-md);
   border-top: 1px solid var(--color-border);
   background: white;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
 }
 
 :global(.dark-mode) .inputForm {
@@ -281,12 +442,11 @@
 
 .sendBtn:hover:not(:disabled) {
   background: #2c5aa0;
-  transform: translateY(-1px);
   box-shadow: var(--shadow-sm);
 }
 
 .sendBtn:active:not(:disabled) {
-  transform: translateY(0);
+  box-shadow: none;
 }
 
 .sendBtn:disabled {

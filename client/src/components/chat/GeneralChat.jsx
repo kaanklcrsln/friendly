@@ -47,7 +47,9 @@ export default function GeneralChat() {
   const [messageText, setMessageText] = useState('');
   const [loading, setLoading] = useState(false);
   const [validationError, setValidationError] = useState('');
-  const messagesEndRef = useRef(null);
+  const [rulesVisible, setRulesVisible] = useState(true);
+  const messagesContainerRef = useRef(null);
+  const shouldScrollRef = useRef(true);
   const { user } = useAuth();
 
   // Firebase'den genel chat mesajlarını yükle
@@ -75,10 +77,21 @@ export default function GeneralChat() {
     return () => unsubscribe();
   }, [user]);
 
-  // Mesajlar güncellenince en alta kaydır
+  // Mesajlar güncellenince en alta kaydır (sadece kullanıcı en altta ise)
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesContainerRef.current && shouldScrollRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
   }, [messages]);
+
+  // Scroll pozisyonunu takip et
+  const handleScroll = () => {
+    if (messagesContainerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
+      // Kullanıcı en altta mı kontrol et (20px tolerans)
+      shouldScrollRef.current = scrollHeight - scrollTop - clientHeight < 20;
+    }
+  };
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -117,6 +130,8 @@ export default function GeneralChat() {
       
       console.log('GeneralChat: Mesaj başarıyla gönderildi!');
       setMessageText('');
+      // Kendi mesajımızı gönderdiğimizde her zaman en alta scroll et
+      shouldScrollRef.current = true;
     } catch (error) {
       console.error('GeneralChat: Mesaj gönderme hatası:', error);
       setValidationError('Mesaj gönderilemedi: ' + error.message);
@@ -147,14 +162,9 @@ export default function GeneralChat() {
         <span className={styles.userCount}>{messages.length} mesaj</span>
       </div>
 
-      {/* Chat Kuralları Background */}
-      <div className={styles.rulesBackground}>
-        <div className={styles.rulesText}>
-          <strong>Chat Kuralları:</strong> Max 50 karakter • Emoji yok • Spam/Küfür yok
-        </div>
-      </div>
 
-      <div className={styles.messagesList}>
+
+      <div className={styles.messagesList} ref={messagesContainerRef} onScroll={handleScroll}>
         {messages.length === 0 ? (
           <div className={styles.emptyState}>
             <p>Henüz mesaj yok. İlk mesajı gönder!</p>
@@ -200,7 +210,6 @@ export default function GeneralChat() {
             </div>
           ))
         )}
-        <div ref={messagesEndRef} />
       </div>
 
       <form onSubmit={handleSendMessage} className={styles.inputForm}>
@@ -213,6 +222,10 @@ export default function GeneralChat() {
               setMessageText(e.target.value);
               setValidationError('');
             }}
+            onFocus={() => {
+              // Input'a tıklandığında kuralları fade out yap
+              setRulesVisible(false);
+            }}
             onKeyPress={(e) => {
               console.log('GeneralChat: Key pressed:', e.key);
               if (e.key === 'Enter') {
@@ -221,7 +234,7 @@ export default function GeneralChat() {
                 handleSendMessage(e);
               }
             }}
-            placeholder="Mesaj yaz... (Max 50 karakter)"
+            placeholder="Mesaj yaz..."
             disabled={loading}
             maxLength="50"
             className={styles.input}

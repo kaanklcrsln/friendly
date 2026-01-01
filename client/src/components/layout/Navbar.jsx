@@ -107,7 +107,7 @@ export default function Navbar() {
                       setShowProfile(true);
                     }}
                   >
-                    ✏️ Profili Düzenle
+                    Profili Düzenle
                   </button>
                   <button 
                     className={styles.menuItem} 
@@ -116,11 +116,11 @@ export default function Navbar() {
                       setShowSettings(true);
                     }}
                   >
-                    ⚙️ Ayarlar
+                    Ayarlar
                   </button>
                   <hr className={styles.divider} />
                   <button className={styles.menuItemDanger} onClick={handleLogout}>
-                    🚪 Çıkış Yap
+                    Çıkış Yap
                   </button>
                 </div>
               )}

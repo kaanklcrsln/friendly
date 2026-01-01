@@ -131,6 +131,28 @@ export default function NotificationPanel({ isOpen, onClose }) {
     await update(notificationRef, { read: true });
   };
 
+  const handleNotificationClick = async (notification) => {
+    console.log('NotificationPanel: Bildirime tıklandı:', notification);
+    
+    // Bildirimi okundu olarak işaretle
+    await handleMarkAsRead(notification);
+    
+    // Eğer etkinlik bildirimi ise haritayı zoom yap
+    if (notification.type === 'new_event' && notification.eventId) {
+      console.log('NotificationPanel: Etkinlik bildirimi, haritayı zoomlayacağım:', notification.eventId);
+      
+      // Haritayı zoom yap
+      if (window.focusEventOnMap) {
+        window.focusEventOnMap(notification.eventId);
+        
+        // Notification panelini kapat
+        onClose();
+      } else {
+        console.log('NotificationPanel: focusEventOnMap fonksiyonu bulunamadı');
+      }
+    }
+  };
+
   const handleDeleteNotification = async (notification) => {
     const userId = auth.currentUser.uid;
     const notificationRef = ref(rtdb, `notifications/${userId}/${notification.id}`);
@@ -224,7 +246,7 @@ export default function NotificationPanel({ isOpen, onClose }) {
                 <div
                   key={notification.id}
                   className={`${styles.notificationItem} ${!notification.read ? styles.unread : ''}`}
-                  onClick={() => handleMarkAsRead(notification)}
+                  onClick={() => handleNotificationClick(notification)}
                 >
                   <div className={styles.notificationContent}>
                     <p className={styles.notificationMessage}>{notification.message}</p>

@@ -54,14 +54,14 @@ export default function ProfileMenu() {
           )}
 
           <button className={styles.menuItem} onClick={() => setIsOpen(false)}>
-            ✏️ Profili Düzenle
+            Profili Düzenle
           </button>
           <button className={styles.menuItem} onClick={() => setIsOpen(false)}>
-            ⚙️ Ayarlar
+            Ayarlar
           </button>
           <hr className={styles.divider} />
           <button className={styles.menuItemDanger} onClick={handleLogout}>
-            🚪 Çıkış Yap
+            Çıkış Yap
           </button>
         </div>
       )}

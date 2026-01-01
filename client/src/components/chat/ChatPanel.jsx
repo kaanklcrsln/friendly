@@ -7,12 +7,9 @@ import UserProfileModal from '../profile/UserProfileModal';
 import UserEventsModal from '../modals/UserEventsModal';
 import UserFriendsModal from '../modals/UserFriendsModal';
 import GeneralChat from './GeneralChat';
-import PrivateChat from './PrivateChat';
 
 export default function ChatPanel() {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('general');
-  const [selectedPerson, setSelectedPerson] = useState(null);
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [showEventsModal, setShowEventsModal] = useState(false);
@@ -107,23 +104,9 @@ export default function ChatPanel() {
         </div>
       </div>
 
-      <div className={styles.tabs}>
-        <button
-          className={`${styles.tab} ${activeTab === 'general' ? styles.active : ''}`}
-          onClick={() => { setActiveTab('general'); setSelectedPerson(null); }}
-        >
-          Genel
-        </button>
-        <button
-          className={`${styles.tab} ${activeTab === 'private' ? styles.active : ''}`}
-          onClick={() => setActiveTab('private')}
-        >
-          Özel
-        </button>
+      <div className={styles.chatContent}>
+        <GeneralChat />
       </div>
-
-      {activeTab === 'general' && <GeneralChat />}
-      {activeTab === 'private' && <PrivateChat />}
 
       <UserProfileModal
         userId={selectedUserId}
