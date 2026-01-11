@@ -29,7 +29,7 @@ https://github.com/user-attachments/assets/97660fc0-80f3-48d7-965c-a591dba311b8
         ├── middleware/    # Auth verification, error handling
         ├── routes/        # API route definitions
         ├── services/      # Business logic & Firestore queries
-        └── utils/         # Helper functions
+        └── utils/         # Help functions
 ```
 
 ## Getting Started
